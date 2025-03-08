@@ -1,8 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-ignition");
 require("@nomicfoundation/hardhat-verify");
-
-const dotenv = require("dotenv");
-dotenv.config();
+require("dotenv").config();
 
 function privateKey() {
   return process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [];
@@ -14,9 +13,14 @@ module.exports = {
       url: "https://rpc.test.btcs.network", // Core Testnet RPC URL
       accounts: privateKey(), // Load private key from environment variable
       chainId: 1115, // Core Testnet chain ID
-      gasPrice: 2000000000, // 2 Gwei (adjust as needed)
+      gasPrice: 5000000000, // 5 Gwei (increase if needed)
       gasLimit: 3000000, // Gas limit for transactions
-      type: 0, // Legacy transaction type
+      type: 0, // Legacy transaction type (use 2 for EIP-1559)
+    },
+    // Add other networks if needed (e.g., localhost, mainnet, etc.)
+    localhost: {
+      url: "http://127.0.0.1:8545", // Local Hardhat network
+      chainId: 31337, // Hardhat default chain ID
     },
   },
   solidity: {
@@ -38,7 +42,7 @@ module.exports = {
         network: "core_testnet",
         chainId: 1115, // Core Testnet chain ID
         urls: {
-          apiURL: "https://api.testnet.core.org/api", // Replace with Core Testnet API URL
+          apiURL: "https://api.testnet.core.org/api", // Replace with correct API URL (if available)
           browserURL: "https://scan.test.btcs.network", // Replace with Core Testnet block explorer URL
         },
       },
