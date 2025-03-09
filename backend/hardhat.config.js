@@ -2,56 +2,45 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-ignition");
 require("@nomicfoundation/hardhat-verify");
 require("dotenv").config();
+const { task } = require("hardhat/config");
 
 function privateKey() {
-  return process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [];
+  return process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
 }
+
+task("check-network", "Check network status", async (args, hre) => {
+  const block = await hre.ethers.provider.getBlockNumber();
+  console.log(`Connected to network. Latest block: ${block}`);
+});
+
+task("balances", "Prints account balances", async (args, hre) => {
+  const balance = await hre.ethers.provider.getBalance((await hre.ethers.getSigners())[0].address);
+  console.log(`Balance: ${hre.ethers.formatEther(balance)} CORE`);
+});
 
 module.exports = {
   networks: {
     core_testnet: {
-      url: "https://rpc.test.btcs.network", // Core Testnet RPC URL
-      accounts: privateKey(), // Load private key from environment variable
-      chainId: 1115, // Core Testnet chain ID
-      gasPrice: 5000000000, // 5 Gwei (increase if needed)
-      gasLimit: 3000000, // Gas limit for transactions
-      type: 0, // Legacy transaction type (use 2 for EIP-1559)
-    },
-    // Add other networks if needed (e.g., localhost, mainnet, etc.)
-    localhost: {
-      url: "http://127.0.0.1:8545", // Local Hardhat network
-      chainId: 31337, // Hardhat default chain ID
+      url: "https://rpc.test.btcs.network",
+      accounts: privateKey(),
+      chainId: 1115,
+      // REMOVE all gas-related parameters here
     },
   },
   solidity: {
-    version: "0.8.24", // Solidity version
+    version: "0.8.24",
     settings: {
-      evmVersion: "paris", // EVM version
+      viaIR: true, // Enable IR compilation for gas optimization
       optimizer: {
-        enabled: true, // Enable optimizer
-        runs: 1000, // Optimize for 1000 runs
+        enabled: true,
+        runs: 1000,
+        details: { yul: true },
       },
     },
-  },
-  etherscan: {
-    apiKey: {
-      core_testnet: process.env.API_KEY, // API key for Core Testnet block explorer (if applicable)
-    },
-    customChains: [
-      {
-        network: "core_testnet",
-        chainId: 1115, // Core Testnet chain ID
-        urls: {
-          apiURL: "https://api.testnet.core.org/api", // Replace with correct API URL (if available)
-          browserURL: "https://scan.test.btcs.network", // Replace with Core Testnet block explorer URL
-        },
-      },
-    ],
   },
   ignition: {
-    gasPrice: "auto", // Use network's gas price setting
-  },
-  sourcify: {
-    enabled: true, // Enable Sourcify verification
+    gasPrice: 100_000_000_000, // Match network gasPrice
+    requiredConfirmations: 1, // Faster confirmation
+    pollingInterval: 1_000, // Faster polling
   },
 };

@@ -1,21 +1,24 @@
 const hre = require("hardhat");
 
 async function main() {
+  const gasPrice = 30_000_000_000; // 30 Gwei
+  const gasLimit = 5_000_000;
+
   const CoreNFT = await hre.ethers.getContractFactory("CoreNFT");
+  const nft = await CoreNFT.deploy(
+    "https://ombaviskar18.github.io/nft-data/generated_metadata/",
+    {
+      gasPrice: gasPrice,
+      gasLimit: gasLimit
+    }
+  );
 
-  // Deploy the contract with higher gas fees
-  const nft = await CoreNFT.deploy("https://ombaviskar18.github.io/Nft-Game/generated_metadata/", {
-    gasPrice: hre.ethers.parseUnits("5", "gwei"), // 5 Gwei (increase if needed)
-    gasLimit: 3000000, // Increase gas limit
-  });
-
-  await nft.waitForDeployment(); // Use waitForDeployment() instead of deployed()
-  console.log("NFT deployed to:", await nft.getAddress()); // Use getAddress() instead of address
+  console.log(`Deploying with hash: ${nft.deploymentTransaction().hash}`);
+  await nft.waitForDeployment();
+  console.log("Deployed to:", await nft.getAddress());
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
